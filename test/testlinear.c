@@ -112,7 +112,7 @@ void queue_update(mqueue *q, float value)
 	}
 
 }
-
+/*
 //function to send a OSC - bundled mapper queue
 //the function could have a timetag as an optional argument
 //otherwise the bundle is given the current system time
@@ -124,6 +124,7 @@ void send_mapper_queue(mqueue *q)
 	//create an osc bundle to send the mapper queue
 	//Each signal in the mapper queue is given the 
 	lo_bundle mb = lo_bundle_new(now);	
+*/
 
 mapper_device source = 0;
 mapper_device destination = 0;

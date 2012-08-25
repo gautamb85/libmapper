@@ -158,7 +158,9 @@ void loop()
     if (automate) {
         char source_name_1[1024], destination_name_1[1024];
         char source_name_2[1024], destination_name_2[1024];
+		char source_name_3[1024], destination_name_3[1024];
 
+		
         printf("%s\n", mdev_name(source));
         printf("%s\n", mdev_name(destination));
 
@@ -176,6 +178,11 @@ void loop()
         msig_full_name(recvsig_2, destination_name_2, 1024);
 
         lo_send(a, "/connect", "ss", source_name_2, destination_name_2);
+
+	    msig_full_name(sendsig_3, source_name_3, 1024);
+        msig_full_name(recvsig_3, destination_name_3, 1024);
+
+        lo_send(a, "/connect", "ss", source_name_3, destination_name_3);
 
         lo_address_free(a);
     }
