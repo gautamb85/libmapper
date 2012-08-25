@@ -82,8 +82,12 @@ void insig_handler(mapper_signal sig, mapper_db_signal props,
     if (value) {
         printf("--> destination got %s", props->name);
         float *v = value;
-        for (int i = 0; i < props->length; i++) {
+       	lo_arg_pp(LO_TIMETAG,&timetag);
+		printf("\n");
+		printf("\n");
+		 for (int i = 0; i < props->length; i++) {
             printf(" %f", v[i]);
+	    	
         }
         printf("\n");
     }
