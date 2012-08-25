@@ -4,15 +4,118 @@
 #include <stdio.h>
 #include <math.h>
 #include <lo/lo.h>
-
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
+#include <assert.h>
 
 #ifdef WIN32
 #define usleep(x) Sleep(x/1000)
 #endif
 
 int automate = 1;
+
+//changes made in the branch
+//structure defining a signal queue
+typedef struct mqueue
+{
+	int capacity;
+	int size;
+	int front;
+	int rear;
+	mapper_signal *elements;
+}mqueue;
+
+//function to create a queue of signals
+
+mqueue * createQueue(int max)
+{
+	mqueue *q;
+	q = (mqueue *)malloc(sizeof(mqueue));
+	q->elements = (mapper_signal *)malloc(sizeof(mapper_signal)*max);
+	q->size=0;
+	q->capacity = max;
+	q->front = 0;
+	q->rear = -1;
+	
+	return q;
+}
+
+void enqueue(mqueue *q,mapper_signal sig)
+{
+	/* If the Queue is full, we cannot push an element into it as there is no space for it.*/
+        if(q->size == q->capacity)
+        {
+                printf("Queue is Full\n");
+        }
+        else
+        {
+                q->size++;
+                q->rear = q->rear + 1;
+                /* As we fill the queue in circular fashion */
+                if(q->rear == q->capacity)
+                {
+                        q->rear = 0;
+                }
+                /* Insert the element in its rear side */ 
+                q->elements[q->rear] = sig;
+        }
+}
+
+void dequeue(mqueue *q)
+{
+	if (q->size==0)
+	{
+		printf("Queue is empty\n");
+		return;
+	}
+	
+	else
+	{
+		q->size++;
+		q->front++;
+		
+		//As we fill elements in a circular fashion
+		
+		if(q->front == q->capacity)
+		q->front=0;
+
+	}
+	return;
+}
+
+mapper_signal front(mqueue *q)
+{
+		if (q->size==0)
+	{
+		printf("Queue is empty\n");
+		exit(0);
+	}
+	
+	return q->elements[q->front];
+}
+
+//function to update a mapper queue for floating point values
+void queue_update(mqueue *q, float value)
+{
+	int s = q->size;
+
+	for(int i=0;i<s;i++)
+	{
+		mapper_signal sig = 0;
+		sig = front(q);
+		dequeue(q);
+    	memcpy(sig->value,&value, msig_vector_bytes(sig));
+    	sig->props.has_value = 1;
+   		
+		if (sig->props.is_output)
+		mdev_route_signal(sig->device, sig, (mapper_signal_value_t*)&value);
+		
+
+	}
+
+}
 
 mapper_device source = 0;
 mapper_device destination = 0;
@@ -24,7 +127,7 @@ mapper_signal sendsig_3 = 0;
 mapper_signal recvsig_3 = 0;
 mapper_signal sendsig_4 = 0;
 mapper_signal recvsig_4 = 0;
-
+mqueue *n;
 int port = 9000;
 
 int sent = 0;
@@ -46,7 +149,14 @@ int setup_source()
     sendsig_3 = mdev_add_output(source, "/outsig_3", 3, 'f', 0, &mn, &mx);
     sendsig_4 = mdev_add_output(source, "/outsig_4", 1, 'f', 0, &mn, &mx);
 
-    printf("Output signal /outsig registered.\n");
+	n = createQueue(4);
+	enqueue(n,sendsig_1);
+    enqueue(n,sendsig_2);
+	enqueue(n,sendsig_3);
+	enqueue(n,sendsig_4);
+
+	printf("Output signal /outsig registered.\n");
+
 
     // Make sure we can add and remove outputs without crashing.
     mdev_remove_output(source, mdev_add_output(source, "/outsig_5", 1,
@@ -82,9 +192,6 @@ void insig_handler(mapper_signal sig, mapper_db_signal props,
     if (value) {
         printf("--> destination got %s", props->name);
         float *v = value;
-       	lo_arg_pp(LO_TIMETAG,&timetag);
-		printf("\n");
-		printf("\n");
 		 for (int i = 0; i < props->length; i++) {
             printf(" %f", v[i]);
 	    	
@@ -189,8 +296,7 @@ void loop()
 
     while (i >= 0 && !done) {
         mdev_poll(source, 0);
-        msig_update_float(source->outputs[0], ((i % 10) * 1.0f));
-        msig_update_float(source->outputs[1], ((i % 10) * 1.0f));
+        queue_update(n, ((i % 10) * 1.0f));
         printf("source value updated to %d -->\n", i % 10);
 
         printf("Received %i messages.\n\n", mdev_poll(destination, 100));
