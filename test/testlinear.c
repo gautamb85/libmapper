@@ -96,10 +96,10 @@ mapper_signal front(mqueue *q)
 void queue_update(mqueue *q, float value)
 {
 	int s = q->size;
-
+    mapper_signal sig = 0;
 	for(int i=0;i<s;i++)
 	{
-		mapper_signal sig = 0;
+		
 		sig = front(q);
 		dequeue(q);
     	memcpy(sig->value,&value, msig_vector_bytes(sig));
@@ -167,9 +167,9 @@ int setup_source()
 	enqueue(n,sendsig1);
 	enqueue(n,sendsig2);
 
-	source->outputs[0]->value_tt = tt;
-	lo_arg_pp(LO_TIMETAG, &(source->outputs[0]->value_tt));
-    printf("\n");
+//	source->outputs[0]->value_tt = tt;
+//	lo_arg_pp(LO_TIMETAG, &(source->outputs[0]->value_tt));
+  //  printf("\n");
 	printf("Output signal /outsig registered.\n");
 	
     printf("Number of outputs: %d\n", mdev_num_outputs(source));
@@ -199,8 +199,8 @@ void insig_handler(mapper_signal sig, mapper_db_signal props,
                    mapper_timetag_t *timetag, void *value)
 {
     if (value) {
-        lo_arg_pp(LO_TIMETAG, timetag);
-		printf("  This is the time\n");
+       // lo_arg_pp(LO_TIMETAG, timetag);
+ 	//	printf("  This is the time\n");
 		printf("handler: Got %f\n", (*(float*)value));
 	}
     received++;
@@ -334,7 +334,7 @@ void loop()
                sendsig2->props.name, (i * 1.0f));
 
         queue_update(n, (i*1.0f));
-        sent++;
+        sent = sent+3;
         usleep(250 * 1000);
         mdev_poll(destination, 0);
     }
