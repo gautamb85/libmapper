@@ -524,6 +524,20 @@ void mdev_route_signal(mapper_device md, mapper_signal sig,
     }
 }
 
+void mdev_route_queue(mapper_device md, mapper_queue q)
+{
+    mapper_router r = md->routers;
+    while (r) {
+        lo_bundle b = lo_bundle_new(q->timetag);
+        for (sig in queue) {
+            mapper_router_receive_signal(r, sig, b);
+        }
+        mapper_router_send_bundle(r, b);
+        lo_bundle_free_messages(b);
+        r = r->next;
+    }
+}
+
 int mdev_route_query(mapper_device md, mapper_signal sig)
 {
     int count = 0;
