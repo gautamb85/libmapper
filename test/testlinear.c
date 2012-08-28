@@ -14,109 +14,70 @@
 
 //changes made in the branch
 //structure defining a signal queue
-typedef struct mqueue
+typedef struct mapper_queue
 {
-	int capacity;
 	int size;
-	int front;
+	int position;
 	int rear;
 	mapper_signal *elements;
-}mqueue;
+} mapper_queue;
 
 //function to create a queue of signals
+//default size of the queue is 2 elements
 
-mqueue * createQueue(int max)
+mapper_queue * mapper_queue_create()
 {
-	mqueue *q;
-	q = (mqueue *)malloc(sizeof(mqueue));
-	q->elements = (mapper_signal *)malloc(sizeof(mapper_signal)*max);
-	q->size=0;
-	q->capacity = max;
-	q->front = 0;
+	mapper_queue *q;
+	q = (mapper_queue *)malloc(sizeof(mapper_queue));
+	q->elements = (mapper_signal *)malloc(sizeof(mapper_signal)*2);
+	q->size = 2;
+	q->position=0;
 	q->rear = -1;
 	
 	return q;
 }
 
-void enqueue(mqueue *q,mapper_signal sig)
+void mapper_enqueue(mapper_queue *q,mapper_signal sig)
+		
 {
-	/* If the Queue is full, we cannot push an element into it as there is no space for it.*/
-        if(q->size == q->capacity)
-        {
-                printf("Queue is Full\n");
-        }
-        else
-        {
-                q->size++;
+                q->position++;
                 q->rear = q->rear + 1;
                 /* As we fill the queue in circular fashion */
-                if(q->rear == q->capacity)
+                if(q->position == q->size)
                 {
-                        q->rear = 0;
+                        q->size *= 2;
+						q->elements = realloc(q->elements, sizeof(mapper_signal)*(q->size));
+						
                 }
                 /* Insert the element in its rear side */ 
                 q->elements[q->rear] = sig;
-        }
+        
 }
 
-void dequeue(mqueue *q)
-{
-	if (q->size==0)
-	{
-		printf("Queue is empty\n");
-		return;
-	}
-	
-	else
-	{
-		q->size++;
-		q->front++;
-		
-		//As we fill elements in a circular fashion
-		
-		if(q->front == q->capacity)
-		q->front=0;
-
-	}
-	return;
-}
-
-mapper_signal front(mqueue *q)
-{
-		if (q->size==0)
-	{
-		printf("Queue is empty\n");
-		exit(0);
-	}
-	
-	return q->elements[q->front];
-}
 
 //function to update a mapper queue for floating point values
-void queue_update(mqueue *q, float value)
+void mapper_queue_update(mapper_queue *q,mapper_signal sig, void *value)
 {
-	int s = q->size;
-    mapper_signal sig = 0;
-	for(int i=0;i<s;i++)
-	{
-		
-		sig = front(q);
-		dequeue(q);
-    	memcpy(sig->value,&value, msig_vector_bytes(sig));
+		//update the value of the signal
+    	memcpy(sig->value,value, msig_vector_bytes(sig));
     	sig->props.has_value = 1;
    		
-		if (sig->props.is_output)
-		mdev_route_signal(sig->device, sig, (mapper_signal_value_t*)&value);
-		
-
-	}
+		//enqueue the updated signal in the mapper queue
+		mapper_enqueue(q,sig);	
 
 }
+
+
 /*
 //function to send a OSC - bundled mapper queue
 //the function could have a timetag as an optional argument
 //otherwise the bundle is given the current system time
-void send_mapper_queue(mqueue *q)
+void mapper_queue_send(mqueue *q, mapper_timetag *tt)
+{
+    mapper_device_send_queue();
+}
+
+void mapper_router_receive_queue()
 {
 	lo_timetag now;
 	//set the now timetag to the current system time (sampling time??)
@@ -124,6 +85,7 @@ void send_mapper_queue(mqueue *q)
 	//create an osc bundle to send the mapper queue
 	//Each signal in the mapper queue is given the 
 	lo_bundle mb = lo_bundle_new(now);	
+}
 */
 
 mapper_device source = 0;
@@ -136,8 +98,7 @@ mapper_signal recvsig = 0;
 mapper_signal recvsig1 = 0;
 mapper_signal recvsig2 = 0;
 
-mqueue *n;
-mapper_signal fr;
+mapper_queue *n;
 int port = 9000;
 
 int sent = 0;
@@ -150,7 +111,7 @@ int setup_source()
         goto error;
     printf("source created.\n");
 	lo_timetag tt;
-	tt.sec = 0;
+}tt.sec = 0;
 	tt.frac = 2;	
 
     float mn=0, mx=1;
@@ -160,12 +121,8 @@ int setup_source()
 	sendsig2 = mdev_add_output(source, "/outsig2", 1, 'f', 0, &mn, &mx);
 
 	//create a signal queue of 3 elements
-	n = createQueue(3);
+	n = mapper_queue_create();
 	
-	//enqueue the 3 signals assosiated with the device - testsend
-	enqueue(n,sendsig);
-	enqueue(n,sendsig1);
-	enqueue(n,sendsig2);
 
 //	source->outputs[0]->value_tt = tt;
 //	lo_arg_pp(LO_TIMETAG, &(source->outputs[0]->value_tt));
@@ -260,43 +217,12 @@ int setup_router()
         return 1;
     }
 	
-	 char signame_in2[1024];
-    if (!msig_full_name(recvsig1, signame_in2, 1024)) {
-        printf("Could not get destination signal name.\n");
-        return 1;
-    }
-
-    char signame_out2[1024];
-    if (!msig_full_name(sendsig1, signame_out2, 1024)) {
-        printf("Could not get source signal name.\n");
-        return 1;
-    }
-	 char signame_in3[1024];
-     if (!msig_full_name(recvsig2, signame_in3, 1024)) {
-        printf("Could not get destination signal name.\n");
-        return 1;
-    }
-
-    char signame_out3[1024];
-    if (!msig_full_name(sendsig2, signame_out3, 1024)) {
-        printf("Could not get source signal name.\n");
-        return 1;
-    }
 
     printf("Connecting signal %s -> %s\n", signame_out1, signame_in1);
     mapper_connection c = mapper_router_add_connection(router, sendsig,
                                                        recvsig->props.name,
                                                        'f', 1);
     
-    printf("Connecting signal %s -> %s\n", signame_out2, signame_in2);
-    mapper_connection c1 = mapper_router_add_connection(router, sendsig1,
-                                                       recvsig1->props.name,
-                                                       'f', 1);
-	
-    printf("Connecting signal %s -> %s\n", signame_out3, signame_in3);
-    mapper_connection c2 = mapper_router_add_connection(router, sendsig2,
-                                                       recvsig2->props.name,
-                                                       'f', 1);
 	mapper_connection_range_t range;
     range.src_min = 0;
     range.src_max = 1;
@@ -305,8 +231,6 @@ int setup_router()
     range.known = CONNECTION_RANGE_KNOWN;
     
     mapper_connection_set_linear_range(c, sendsig, &range);
-	mapper_connection_set_linear_range(c1, sendsig1, &range);
-	mapper_connection_set_linear_range(c2, sendsig2, &range);
 
     return 0;
 }
@@ -323,17 +247,13 @@ void wait_ready()
 void loop()
 {
     printf("Polling device..\n");
-    int i;
+    float i;
     for (i = 0; i < 10; i++) {
         mdev_poll(source, 0);
         printf("Updating signal %s to %f\n",
                sendsig->props.name, (i * 1.0f));
-	    printf("Updating signal %s to %f\n",
-               sendsig1->props.name, (i * 1.0f));
-	    printf("Updating signal %s to %f\n",
-               sendsig2->props.name, (i * 1.0f));
 
-        queue_update(n, (i*1.0f));
+        mapper_queue_update(n,sendsig,&i);
         sent = sent+3;
         usleep(250 * 1000);
         mdev_poll(destination, 0);
