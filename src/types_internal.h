@@ -26,6 +26,7 @@
 struct _mapper_signal;
 struct _mapper_admin;
 typedef struct _mapper_expr *mapper_expr;
+struct _mapper_queue;
 
 /* Forward declarations for this file. */
 

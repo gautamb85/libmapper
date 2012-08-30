@@ -28,6 +28,16 @@ struct _mapper_signal
     /*! An optional function to be called when the signal value
      *  changes. */
     mapper_signal_handler *handler;
+}; 
+
+/**** Queues ****/
+
+struct _mapper_queue
+{
+	int size;
+	int position;
+	mapper_timetag_t timetag;
+	mapper_signal *elements;
 };
 
 // Mapper internal functions

@@ -529,8 +529,8 @@ void mdev_route_queue(mapper_device md, mapper_queue q)
     mapper_router r = md->routers;
     while (r) {
         lo_bundle b = lo_bundle_new(q->timetag);
-        for (sig in queue) {
-            mapper_router_receive_signal(r, sig, b);
+        for (int i = 0; i<q->position;i++) {
+            mapper_router_receive_signal(r, q->elements[i], b);
         }
         mapper_router_send_bundle(r, b);
         lo_bundle_free_messages(b);

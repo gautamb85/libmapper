@@ -199,6 +199,33 @@ void msig_update(mapper_signal sig, void *value)
         mdev_route_signal(sig->device, sig, (mapper_signal_value_t*)value);
 }
 
+static void mapper_queue_enqueue(mapper_queue q,mapper_signal sig)
+{
+	if(q->position == q->size)
+	{
+		q->size *= 2;
+		q->elements = realloc(q->elements,
+		sizeof(mapper_signal)*(q->size));
+	}
+ 	
+	q->elements[q->position] = sig;
+	q->position = q->position + 1;
+}
+
+void msig_update_queued(mapper_signal sig,void *value, mapper_queue q)
+{
+#ifdef DEBUG
+    if (!sig->device) {
+        trace("signal does not have a device in msig_update_float().\n");
+        return;
+    }
+#endif
+    	memcpy(sig->value,value, msig_vector_bytes(sig));
+    	sig->props.has_value = 1;
+		mapper_queue_enqueue(q,sig);	
+}
+
+
 void mval_add_to_message(lo_message m, mapper_signal sig,
                          mapper_signal_value_t *value)
 {

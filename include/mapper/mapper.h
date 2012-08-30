@@ -33,6 +33,14 @@ libmapper concepts.
 struct _mapper_signal;
 typedef struct _mapper_signal *mapper_signal;
 
+/*** Queues ***/
+
+/*! A data structure used to handle a queue of
+ *  mapper signals. */
+struct _mapper_queue;
+typedef struct _mapper_queue *mapper_queue;
+
+
 /*! A 64-bit data structure containing an NTP-compatible time tag, as
  *  used by OSC. */
 typedef lo_timetag mapper_timetag_t;
@@ -116,6 +124,10 @@ void msig_update_float(mapper_signal sig, float value);
  *         is 'f', this should be float*.  It should be an array at
  *         least as long as the signal's length property. */
 void msig_update(mapper_signal sig, void *value);
+
+/*! Update the value of a signal
+ *  and enque the signal into a mapper queue. */
+void msig_update_queued(mapper_signal sid, void *value, mapper_queue q);
 
 /*! Get the full OSC name of a signal, including device name
  *  prefix.
