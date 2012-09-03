@@ -30,16 +30,6 @@ struct _mapper_signal
     mapper_signal_handler *handler;
 }; 
 
-/**** Queues ****/
-
-struct _mapper_queue
-{
-	int size;
-	int position;
-	mapper_timetag_t timetag;
-	mapper_signal *elements;
-};
-
 // Mapper internal functions
 
 /**** Admin ****/

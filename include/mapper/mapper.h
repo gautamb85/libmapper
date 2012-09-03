@@ -1,6 +1,6 @@
 #ifndef __MAPPER_H__
 #define __MAPPER_H__
-
+#include "types_internal.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -32,14 +32,6 @@ libmapper concepts.
 
 struct _mapper_signal;
 typedef struct _mapper_signal *mapper_signal;
-
-/*** Queues ***/
-
-/*! A data structure used to handle a queue of
- *  mapper signals. */
-struct _mapper_queue;
-typedef struct _mapper_queue *mapper_queue;
-
 
 /*! A 64-bit data structure containing an NTP-compatible time tag, as
  *  used by OSC. */
@@ -127,7 +119,7 @@ void msig_update(mapper_signal sig, void *value);
 
 /*! Update the value of a signal
  *  and enque the signal into a mapper queue. */
-void msig_update_queued(mapper_signal sid, void *value, mapper_queue q);
+void msig_update_queued(mapper_signal sig, void *value, mapper_queue q);
 
 /*! Get the full OSC name of a signal, including device name
  *  prefix.
