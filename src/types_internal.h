@@ -3,7 +3,7 @@
 #define __MAPPER_TYPES_H__
 
 #include <lo/lo_lowlevel.h>
-#include "mapper_internal.h"
+//#include "mapper_internal.h"
 #include "config.h"
 
 #ifdef HAVE_ARPA_INET_H
@@ -302,7 +302,7 @@ typedef struct _mapper_message
 
 /**** Queues ****/
 
-struct _mapper_queue
+typedef struct _mapper_queue
 {
 	int size;
 	int position;
