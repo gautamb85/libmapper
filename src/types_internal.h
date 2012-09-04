@@ -307,7 +307,7 @@ typedef struct _mapper_queue
 	int size;
 	int position;
 	lo_timetag timetag;
-	_mapper_signal *elements;
+	struct _mapper_signal **elements;
 } *mapper_queue;
 
 #endif // __MAPPER_TYPES_H__
