@@ -346,6 +346,11 @@ const char *mdev_interface(mapper_device dev);
  *  \return A positive ordinal unique to this device (per name). */
 unsigned int mdev_ordinal(mapper_device dev);
 
+//function to create a mapper queue
+mapper_queue mdev_get_queue();
+
+//function to route a mapper queue
+void mdev_route_queue(mapper_device md, mapper_queue q);
 
 /*! Set the time associated with signal values emitted from a device.
  *

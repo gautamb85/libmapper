@@ -201,11 +201,14 @@ void msig_update(mapper_signal sig, void *value)
 
 static void mapper_queue_enqueue(mapper_queue q,mapper_signal sig)
 {
+	printf("q->position: %d, q->size: %d\n", q->position, q->size);
 	if(q->position == q->size)
 	{
+	printf("Here.\n");
 		q->size *= 2;
 		q->elements = realloc(q->elements,
-		sizeof(mapper_signal)*(q->size));
+				sizeof(mapper_signal)*(q->size));
+		printf("q->elements: %p\n", q->elements);
 	}
  	
 	q->elements[q->position] = sig;

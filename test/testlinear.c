@@ -17,7 +17,7 @@ mapper_signal sendsig = 0;
 mapper_signal recvsig = 0;
 mapper_queue n;
 
-mapper_queue mdev_get_queue()
+/*mapper_queue mdev_get_queue()
 {
 	mapper_queue q;
 	q = (mapper_queue)malloc(sizeof(mapper_queue));
@@ -41,7 +41,7 @@ void mdev_route_queue(mapper_device md, mapper_queue q)
         lo_bundle_free_messages(b);
         r = r->next;
     }
-}
+}*/
 
 int port = 9000;
 
@@ -90,6 +90,7 @@ void insig_handler(mapper_signal sig, mapper_db_signal props,
         printf("handler: Got %f\n", (*(float*)value));
     }
     received++;
+	printf("received =%d\n",received);
 }
 
 int setup_destination()
@@ -127,6 +128,8 @@ int setup_router()
     const char *host = "localhost";
     router = mapper_router_new(source, host, destination->admin->port.value,
                                mdev_name(destination));
+  //  router = mapper_router_new(source, "127.0.0.1", 9001,
+    //                           mdev_name(destination));
     mdev_add_router(source, router);
     printf("Router to %s:%d added.\n", host, port);
 
@@ -170,21 +173,24 @@ void wait_ready()
 void loop()
 {
     printf("Polling device..\n");
-    int i;
+	int i;
+	float j=1;
 	int s = n->position;
-    
-//	for (i = 0; i < 10; i++) {
-        mdev_poll(source, 0);
+	printf("s=%d\n",s);    
+	for (i = 0; i < 10; i++) {
+        j=i;
+		mdev_poll(source, 0);
         printf("Updating signal %s to %f\n",
-               sendsig->props.name, (1 * 1.0f));
-        msig_update_queued(sendsig, &i,n );
-		mdev_route_queue(sendsig->device, n);
-		sent = sent+s;
+               sendsig->props.name, j);
+        msig_update_queued(sendsig, &j,n );
+		mdev_route_queue(sendsig->device,n);
+		sent = sent+1;
+		printf("sent =%d\n",sent);
         usleep(250 * 1000);
         mdev_poll(destination, 0);
-  //  }
-}
+    }
 
+}
 int main()
 {
     int result = 0;

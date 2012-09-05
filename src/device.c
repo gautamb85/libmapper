@@ -528,8 +528,9 @@ void mdev_route_signal(mapper_device md, mapper_signal sig,
 mapper_queue mdev_get_queue()
 {
 	mapper_queue q;
-	q = (mapper_queue)malloc(sizeof(mapper_queue));
+	q = (mapper_queue)malloc(sizeof(mapper_queue_t));
 	q->elements = (mapper_signal *)malloc(sizeof(mapper_signal)*2);
+    printf("q->elements: %p\n", q->elements);
 	q->size = 2;
 	q->position = 0;
 	q->timetag = LO_TT_IMMEDIATE;

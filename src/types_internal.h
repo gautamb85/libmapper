@@ -3,7 +3,6 @@
 #define __MAPPER_TYPES_H__
 
 #include <lo/lo_lowlevel.h>
-//#include "mapper_internal.h"
 #include "config.h"
 
 #ifdef HAVE_ARPA_INET_H
@@ -308,6 +307,6 @@ typedef struct _mapper_queue
 	int position;
 	lo_timetag timetag;
 	struct _mapper_signal **elements;
-} *mapper_queue;
+} mapper_queue_t, *mapper_queue;
 
 #endif // __MAPPER_TYPES_H__
