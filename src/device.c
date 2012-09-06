@@ -540,7 +540,6 @@ mapper_queue mdev_get_queue()
 
 static void mdev_release_queue(mapper_queue q)
 {
-	q->position = 0;
 	free(q->elements);
 	free(q);
 }

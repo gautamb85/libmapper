@@ -15,32 +15,9 @@ mapper_device destination = 0;
 mapper_router router = 0;
 mapper_signal sendsig = 0;
 mapper_signal recvsig = 0;
+mapper_signal sendsig1 = 0;
+mapper_signal recvsig1 = 0;
 
-/*mapper_queue mdev_get_queue()
-{
-	mapper_queue q;
-	q = (mapper_queue)malloc(sizeof(mapper_queue));
-	q->elements = (mapper_signal *)malloc(sizeof(mapper_signal)*2);
-	q->size = 2;
-	q->position = 0;
-	q->timetag = LO_TT_IMMEDIATE;
-
-	return q;
-}
-
-void mdev_route_queue(mapper_device md, mapper_queue q)
-{
-    mapper_router r = md->routers;
-    while (r) {
-        lo_bundle b = lo_bundle_new(q->timetag);
-        for (int i = 0; i<q->position;i++) {
-            mapper_router_receive_signal(r, q->elements[i], b);
-        }
-        mapper_router_send_bundle(r, b);
-        lo_bundle_free_messages(b);
-        r = r->next;
-    }
-}*/
 
 int port = 9000;
 
@@ -57,7 +34,9 @@ int setup_source()
     float mn=0, mx=1;
 
     sendsig = mdev_add_output(source, "/outsig", 1, 'f', 0, &mn, &mx);
-    printf("Output signal /outsig registered.\n");
+    sendsig1= mdev_add_output(source, "/outsig1", 1, 'f', 0, &mn, &mx);
+
+	printf("Output signal /outsig registered.\n");
     printf("Number of outputs: %d\n", mdev_num_outputs(source));
     return 0;
 
@@ -102,6 +81,8 @@ int setup_destination()
 
     recvsig = mdev_add_input(destination, "/insig", 1, 'f', 0,
                              &mn, &mx, insig_handler, 0);
+	recvsig1= mdev_add_input(destination, "/insig1", 1, 'f', 0,
+                             &mn, &mx, insig_handler, 0);
 
     printf("Input signal /insig registered.\n");
     printf("Number of inputs: %d\n", mdev_num_inputs(destination));
@@ -124,10 +105,10 @@ void cleanup_destination()
 int setup_router()
 {
     const char *host = "localhost";
-    router = mapper_router_new(source, host, destination->admin->port.value,
+   // router = mapper_router_new(source, host, destination->admin->port.value,
+     //                          mdev_name(destination));
+    router = mapper_router_new(source, "127.0.0.1", 9001,
                                mdev_name(destination));
-  //  router = mapper_router_new(source, "127.0.0.1", 9001,
-    //                           mdev_name(destination));
     mdev_add_router(source, router);
     printf("Router to %s:%d added.\n", host, port);
 
@@ -143,11 +124,28 @@ int setup_router()
         return 1;
     }
 
+	char signame_in1[1024];
+    if (!msig_full_name(recvsig1, signame_in1, 1024)) {
+        printf("Could not get destination signal name.\n");
+        return 1;
+    }
+
+    char signame_out1[1024];
+    if (!msig_full_name(sendsig1, signame_out1, 1024)) {
+        printf("Could not get source signal name.\n");
+        return 1;
+    }
+
     printf("Connecting signal %s -> %s\n", signame_out, signame_in);
     mapper_connection c = mapper_router_add_connection(router, sendsig,
                                                        recvsig->props.name,
                                                        'f', 1);
-    mapper_connection_range_t range;
+    printf("Connecting signal %s -> %s\n", signame_out1, signame_in1);
+    mapper_connection c1 = mapper_router_add_connection(router, sendsig1,
+                                                       recvsig1->props.name,
+                                                       'f', 1);
+
+	 mapper_connection_range_t range;
     range.src_min = 0;
     range.src_max = 1;
     range.dest_min = -10;
@@ -155,6 +153,7 @@ int setup_router()
     range.known = CONNECTION_RANGE_KNOWN;
     
     mapper_connection_set_linear_range(c, sendsig, &range);
+	mapper_connection_set_linear_range(c1, sendsig1, &range);
 
     return 0;
 }
@@ -181,8 +180,9 @@ void loop()
         printf("Updating signal %s to %f\n",
                sendsig->props.name, j);
         msig_update_queued(sendsig, &j,n );
+		msig_update_queued(sendsig1, &j,n );
 		mdev_route_queue(sendsig->device,n);
-		sent = sent+1;
+		sent = sent+2;
 		printf("sent =%d\n",sent);
         usleep(250 * 1000);
         mdev_poll(destination, 0);
