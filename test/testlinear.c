@@ -15,7 +15,6 @@ mapper_device destination = 0;
 mapper_router router = 0;
 mapper_signal sendsig = 0;
 mapper_signal recvsig = 0;
-mapper_queue n;
 
 /*mapper_queue mdev_get_queue()
 {
@@ -58,7 +57,6 @@ int setup_source()
     float mn=0, mx=1;
 
     sendsig = mdev_add_output(source, "/outsig", 1, 'f', 0, &mn, &mx);
-	n = mdev_get_queue();
     printf("Output signal /outsig registered.\n");
     printf("Number of outputs: %d\n", mdev_num_outputs(source));
     return 0;
@@ -175,10 +173,10 @@ void loop()
     printf("Polling device..\n");
 	int i;
 	float j=1;
-	int s = n->position;
-	printf("s=%d\n",s);    
 	for (i = 0; i < 10; i++) {
         j=i;
+		mapper_queue n;
+		n = mdev_get_queue();
 		mdev_poll(source, 0);
         printf("Updating signal %s to %f\n",
                sendsig->props.name, j);

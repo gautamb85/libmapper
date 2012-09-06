@@ -538,6 +538,14 @@ mapper_queue mdev_get_queue()
 	return q;
 }
 
+static void mdev_release_queue(mapper_queue q)
+{
+	q->position = 0;
+	free(q->elements);
+	free(q);
+}
+
+
 void mdev_route_queue(mapper_device md, mapper_queue q)
 {
     mapper_router r = md->routers;
@@ -546,7 +554,8 @@ void mdev_route_queue(mapper_device md, mapper_queue q)
         for (int i = 0; i<q->position;i++) {
             mapper_router_receive_signal(r, q->elements[i], b);
         }
-        mapper_router_send_bundle(r, b);
+        mdev_release_queue(q);
+		mapper_router_send_bundle(r, b);
         lo_bundle_free_messages(b);
         r = r->next;
     }
