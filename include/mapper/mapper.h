@@ -1,6 +1,6 @@
 #ifndef __MAPPER_H__
 #define __MAPPER_H__
-#include "types_internal.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -346,7 +346,7 @@ unsigned int mdev_ordinal(mapper_device dev);
 mapper_queue mdev_get_queue();
 
 //function to route a mapper queue
-void mdev_route_queue(mapper_device md, mapper_queue q);
+void mdev_send_queue(mapper_device md, mapper_queue q);
 
 /*! Set the time associated with signal values emitted from a device.
  *

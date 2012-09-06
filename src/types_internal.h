@@ -25,7 +25,7 @@
 struct _mapper_signal;
 struct _mapper_admin;
 typedef struct _mapper_expr *mapper_expr;
-struct _mapper_queue;
+//struct _mapper_queue;
 
 /* Forward declarations for this file. */
 
@@ -305,7 +305,7 @@ typedef struct _mapper_queue
 {
 	int size;
 	int position;
-	lo_timetag timetag;
+	mapper_timetag_t timetag;
 	struct _mapper_signal **elements;
 } mapper_queue_t, *mapper_queue;
 

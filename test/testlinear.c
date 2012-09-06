@@ -181,7 +181,7 @@ void loop()
                sendsig->props.name, j);
         msig_update_queued(sendsig, &j,n );
 		msig_update_queued(sendsig1, &j,n );
-		mdev_route_queue(sendsig->device,n);
+		mdev_send_queue(sendsig->device,n);
 		sent = sent+2;
 		printf("sent =%d\n",sent);
         usleep(250 * 1000);
